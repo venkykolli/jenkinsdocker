@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+    
+    environment {
+        JAVA_IMAGE = "java-app"
+        NODE_IMAGE = "nodejs-app"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/your-repo/project-root.git'
+            }
+        }
+
+        stage('Build Java Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t $JAVA_IMAGE java-app/'
+                }
+            }
+        }
+
+        stage('Run Java Container') {
+            steps {
+                script {
+                    sh 'docker run --rm $JAVA_IMAGE'
+                }
+            }
+        }
+
+        stage('Build Node.js Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t $NODE_IMAGE nodejs-app/'
+                }
+            }
+        }
+
+        stage('Run Node.js Container') {
+            steps {
+                script {
+                    sh 'docker run -d -p 3000:3000 $NODE_IMAGE'
+                }
+            }
+        }
+
+        stage('Verify Node.js Server') {
+            steps {
+                script {
+                    sh 'curl -s http://localhost:3000'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                sh 'docker ps -a'
+            }
+        }
+    }
+}
